@@ -32,15 +32,15 @@ Welcome to **LOTR Converter**, a SwiftUI-based iOS application that allows users
 ## 📷 Screenshots
 
 ### Home Screen
-<img width="350" alt="image" src="https://github.com/user-attachments/assets/79500d30-48ef-4c28-9bd3-fb9e1b052f5a">
+<img width="300" alt="image" src="https://github.com/user-attachments/assets/79500d30-48ef-4c28-9bd3-fb9e1b052f5a">
 
-<img width="350" alt="image" src="https://github.com/user-attachments/assets/31ece68e-0394-41e0-b328-02c9901ed6b8">
+<img width="300" alt="image" src="https://github.com/user-attachments/assets/31ece68e-0394-41e0-b328-02c9901ed6b8">
 
 ### Exchange Info
-![Exchange Info](./screenshots/exchange_info.png)
+<img width="300" alt="image" src="https://github.com/user-attachments/assets/ec37a271-9380-487a-8a85-ca9adb794f48">
 
 ### Select Currency
-![Select Currency](./screenshots/select_currency.png)
+<img width="300" alt="image" src="https://github.com/user-attachments/assets/f0b48198-d545-43e2-9843-4ea451f8a092">
 
 ---
 
