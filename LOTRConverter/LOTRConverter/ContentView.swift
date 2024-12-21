@@ -6,14 +6,32 @@
 //
 
 import SwiftUI
+import TipKit
 
 struct ContentView: View {
+    @State var showExchangeInfo = false
+    @State var showSelectCurrency = false
+    
+    @State var leftAmount = ""
+    @State var rightAmount = ""
+    
+    @FocusState var leftTyping
+    @FocusState var rightTyping
+    
+    @State var leftCurrency: Currency = .silverPiece
+    @State var rightCurrency: Currency = .goldPiece
+    
+    let currencyTip = CurrencyTip()
+    
     var body: some View {
         ZStack {
             // Background Image
             Image(.background)
                 .resizable()
                 .ignoresSafeArea()
+                .onTapGesture {
+                    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+                }
             
             VStack {
                 // Prancing Pony Logo
@@ -37,20 +55,27 @@ struct ContentView: View {
                         
                         HStack {
                             // Currency Image
-                            Image(.silverpiece)
+                            Image(leftCurrency.image)
                                 .resizable()
                                 .scaledToFit()
                                 .frame(width: 33)
                             
                             // Currency Text
-                            Text("Silver Piece")
+                            Text(leftCurrency.name)
                                 .font(.headline)
                                 .foregroundColor(.white)
                         }
+                        .padding(.bottom, -5)
+                        .onTapGesture {
+                            showSelectCurrency.toggle()
+                            currencyTip.invalidate(reason: .actionPerformed)
+                        }
+                        .popoverTip(currencyTip, arrowEdge: .bottom)
                         
                         // TextField
-                        Text("Amount")
-                        
+                        TextField("Amount", text: $leftAmount)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .focused($leftTyping)
                     }
                     
                     // Equal Sign
@@ -67,30 +92,89 @@ struct ContentView: View {
                         
                         HStack {
                             // Currency Text
-                            Text("Gold Piece")
+                            Text(rightCurrency.name)
                                 .font(.headline)
                                 .foregroundColor(.white)
                             
                             // Currency Image
-                            Image(.goldpiece)
+                            Image(rightCurrency.image)
                                 .resizable()
                                 .scaledToFit()
                                 .frame(width: 33)
                         }
+                        .padding(.bottom, -5)
+                        .onTapGesture {
+                            showSelectCurrency.toggle()
+                        }
                         
                         // TextField
-                        Text("Amount")
+                        TextField("Amount", text: $rightAmount)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .multilineTextAlignment(.trailing)
+                            .focused($rightTyping)
                     }
-                    
                 }
+                .padding()
+                .background(.black.opacity(0.5))
+                .cornerRadius(10)
+                .keyboardType(.decimalPad)
                 
                 Spacer()
                 
                 // Info Button
-                Image(systemName: "info.circle.fill")
-                    .font(.largeTitle)
-                    .foregroundColor(.white)
+                
+                HStack {
+                    Spacer()
+                    
+                    Button {
+                        showExchangeInfo.toggle()
+                    } label: {
+                        Image(systemName: "info.circle.fill")
+                            .font(.largeTitle)
+                            .foregroundColor(.white)
+                    }
+                    .padding(.trailing)
+                }
             }
+        }
+        .task {
+            if let data = UserDefaults.standard.data(forKey: "leftCurrency"),
+               let savedCurrency = try? JSONDecoder().decode(Currency.self, from: data) {
+                leftCurrency = savedCurrency
+            }
+            if let data = UserDefaults.standard.data(forKey: "rightCurrency"),
+               let savedCurrency = try? JSONDecoder().decode(Currency.self, from: data) {
+                rightCurrency = savedCurrency
+            }
+            try? Tips.configure()
+        }
+        .onChange(of: leftCurrency) { newValue in
+            UserDefaults.standard.set(try? JSONEncoder().encode(newValue), forKey: "leftCurrency")
+        }
+        .onChange(of: rightCurrency) { newValue in
+            UserDefaults.standard.set(try? JSONEncoder().encode(newValue), forKey: "rightCurrency")
+        }
+        .onChange(of: leftAmount) {
+            if leftTyping {
+                rightAmount = leftCurrency.convert(leftAmount, to: rightCurrency)
+            }
+        }
+        .onChange(of: rightAmount) {
+            if rightTyping {
+                leftAmount = rightCurrency.convert(rightAmount, to: leftCurrency)
+            }
+        }
+        .onChange(of: leftCurrency) {
+            leftAmount = rightCurrency.convert(rightAmount, to: leftCurrency)
+        }
+        .onChange(of: rightCurrency) {
+            rightAmount = leftCurrency.convert(leftAmount, to: rightCurrency)
+        }
+        .sheet(isPresented: $showExchangeInfo) {
+            ExchangeInfo()
+        }
+        .sheet(isPresented: $showSelectCurrency) {
+            SelectCurrency(topCurrency: $leftCurrency, bottomCurrency: $rightCurrency)
         }
     }
 }
